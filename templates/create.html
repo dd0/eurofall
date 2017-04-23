@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Create Game{% endblock %}
+{% block content %}
+<form action="create" method="post">
+  <input type="text" name="name" placeholder="name" /> <br/>
+  <input type="text" name="pwd" placeholder="password" /> <br/>
+  Number of players: <input type="number" name="num_players" min="1" max="20" /> <br/>
+  <button type="submit">Create</button>
+</form>
+{% endblock %}
+
+
