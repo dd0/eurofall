@@ -57,7 +57,7 @@ make_token.next_i = 0
 
 
 # Add a new player to the game with the id 'game' and return their token
-def add_player(game):
+def add_player(game, is_admin=False):
     database = db()
 
     cursor = database.execute('SELECT max_players FROM games WHERE id == ?',
@@ -81,10 +81,12 @@ def add_player(game):
     if not has_spy and random.choice(range(max_players - res[0])) == 0:
         is_spy = 1
 
-    insert_query = ('INSERT INTO players (game_id, token, spy)'
-                    'VALUES (?, ?, ?)')
+    admin = 1 if is_admin else 0
+
+    insert_query = ('INSERT INTO players (game_id, token, spy, admin)'
+                    'VALUES (?, ?, ?, ?)')
     token = make_token()
-    database.execute(insert_query, [game, token, is_spy])
+    database.execute(insert_query, [game, token, is_spy, admin])
     database.commit()
 
     return token
@@ -133,7 +135,7 @@ def play_game():
 
     database = db()
 
-    query = ('SELECT location, spy, name '
+    query = ('SELECT location, spy, name, admin '
              'FROM players '
              'JOIN games ON id == game_id '
              'WHERE token = ? ')
@@ -148,7 +150,10 @@ def play_game():
     if location[1]:
         loc = 'Spy'
 
-    return render_template('play.html', location=loc, name=location[2])
+    is_admin = location[3] == 1
+
+    return render_template('play.html', location=loc, name=location[2],
+                           admin=is_admin, token=token)
 
 
 def random_location():
@@ -184,9 +189,53 @@ def create_game():
         cursor = database.execute(query, [name, password, num_players, loc])
         database.commit()
 
-        token = add_player(cursor.lastrowid)
+        token = add_player(cursor.lastrowid, True)
 
         return redirect(url_for('play_game', token=token))
+
+
+@app.route('/next', methods=['GET'])
+def next_game():
+    token = request.args.get('token')
+    if token is None:
+        flash('No token provided!')
+        return redirect(url_for('home'))
+
+    database = db()
+
+    query = ('SELECT id '
+             'FROM games '
+             'JOIN players ON id == game_id '
+             'WHERE token == ? AND admin == 1')
+    cursor = database.execute(query, [token])
+
+    game = cursor.fetchone()
+    if game is None:
+        flash('Invalid or non-admin token!')
+        return redirect(url_for('home'))
+
+    # change the location
+    new_loc = random_location()
+    database.execute('UPDATE games SET location = ? WHERE id == ?',
+                     [new_loc, game[0]])
+
+    # pick a random player as the new spy
+    spy_query = ('SELECT rowid '
+                 'FROM players '
+                 'WHERE game_id = ? '
+                 'ORDER BY RANDOM() '
+                 'LIMIT 1')
+    spy = database.execute(spy_query, [game[0]]).fetchone()
+
+    # set all players to "not spy", then update the chosen one
+    database.execute('UPDATE players SET spy = 0 WHERE game_id = ?',
+                     [game[0]])
+    database.execute('UPDATE players SET spy = 1 WHERE rowid = ?',
+                     [spy[0]])
+
+    database.commit()
+
+    return redirect(url_for('play_game', token=token))
 
 
 if __name__ == '__main__':
