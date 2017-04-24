@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, flash, redirect, url_for
 from flask import render_template
 from contextlib import closing
 import sqlite3
@@ -10,6 +10,7 @@ DATABASE = 'db/data.db'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+app.secret_key = b'change_this_in_production'
 
 
 def db():
@@ -107,15 +108,16 @@ def join_game():
 
         game = cursor.fetchone()
         if game is None:
-            # todo: better UI for this
-            return 'Nonexistent game!'
+            flash('Nonexistent game!')
+            return redirect(url_for('join_game'))
 
         if game[1] == game[2]:
-            # todo: better UI as well
-            return 'Game is full!'
+            flash('Game is full!')
+            return redirect(url_for('join_game'))
 
         if game[3] != password:
-            return 'Wrong password!'
+            flash('Wrong password!')
+            return redirect(url_for('join_game'))
 
         token = add_player(game_id)
 
@@ -126,7 +128,8 @@ def join_game():
 def play_game():
     token = request.args.get('token')
     if token is None:
-        return 'No token provided!'
+        flash('No token provided!')
+        return redirect(url_for('home'))
 
     database = db()
 
@@ -138,7 +141,8 @@ def play_game():
 
     location = cursor.fetchone()
     if location is None:
-        return 'Invalid token!'
+        flash('Invalid token!')
+        return redirect(url_for('home'))
 
     loc = location[0]
     if location[1]:
@@ -159,12 +163,18 @@ def create_game():
     else:
         name = request.form.get('name')
         password = request.form.get('pwd', '')
-        num_players = int(request.form.get('num_players'))
+        num_players = None
+        try:
+            num_players = int(request.form.get('num_players'))
+        except ValueError:
+            pass
 
         if name is None:
-            return 'No name provided!'
+            flash('No name provided!')
+            return redirect(url_for('create_game'))
         if num_players not in range(1, 20):
-            return 'Invalid number of players!'
+            flash('Invalid number of players!')
+            return redirect(url_for('create_game'))
 
         loc = random_location()
 
