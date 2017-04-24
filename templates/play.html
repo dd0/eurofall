@@ -1,5 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Create Game{% endblock %}
+{% block title %}{{ name|safe }}{% endblock %}
 {% block content %}
-{{ location }}
+<div class="jumbotron">
+  <p class="text-center h1">
+    {{ location }}
+  </p>
+</div>
 {% endblock %}

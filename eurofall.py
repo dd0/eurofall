@@ -43,8 +43,6 @@ def show_games():
     games = [{'title': row[1], 'curr_players': row[2], 'players': row[3],
               'id': row[0]} for row in cursor.fetchall()]
 
-    print(games)
-    
     return render_template('join.html', games=games)
 
 
@@ -132,7 +130,7 @@ def play_game():
 
     database = db()
 
-    query = ('SELECT location, spy '
+    query = ('SELECT location, spy, name '
              'FROM players '
              'JOIN games ON id == game_id '
              'WHERE token = ? ')
@@ -146,7 +144,7 @@ def play_game():
     if location[1]:
         loc = 'Spy'
 
-    return render_template('play.html', location=loc)
+    return render_template('play.html', location=loc, name=location[2])
 
 
 def random_location():

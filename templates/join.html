@@ -1,16 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Join Game{% endblock %}
 {% block content %}
-<form action="join" method="post">
-  <input type="text" name="pwd" placeholder="password" />
-  <table>
-    {% for game in games %}
-    <tr>
-      <td>{{ game.title|safe }}</td>
-      <td>{{ game.curr_players }}/{{ game.players }}</td>
-      <td><button name="id" value="{{ game.id }}" type="submit"{% if game.curr_players == game.players %} disabled{% endif %}>Join</button></td>
-    </tr>
-    {% endfor %}
-  </table>
+<h1>Join Game</h1>
+<form action="join" method="post" class="form-horizontal">
+  <label for="pwd">Password:</label>
+  <input type="text" name="pwd" class="form-control" />
+  {% for game in games %}
+  <div class="form-group">
+    <div class="col-sm-8">
+      <label for="{{ game.id }}" class="control-label">
+	{{ game.title|safe }} ({{ game.curr_players }}/{{ game.players }})
+      </label>
+    </div>
+    <div class="col-sm-4">
+      <button name="id" value="{{ game.id }}" class="btn btn-default btn-block" type="submit"{% if game.curr_players == game.players %} disabled{% endif %}>Join</button>
+    </div>
+  </div>
+  {% endfor %}
 </form>
 {% endblock %}

@@ -10,6 +10,10 @@ where they can create a new game or join an already existing
 one. After joining a game, they are redirected to a page showing the
 location (or that they are the spy).
 
+Uses [Flask](http://flask.pocoo.org/) and
+[SQLite](https://www.sqlite.org/) for the server, and
+[Bootstrap](http://getbootstrap.com/) for styling the front-end pages.
+
 Note: currently under development.
 
 

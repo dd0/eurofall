@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Create Game{% endblock %}
 {% block content %}
-<form action="create" method="post">
-  <input type="text" name="name" placeholder="name" /> <br/>
-  <input type="text" name="pwd" placeholder="password" /> <br/>
-  Number of players: <input type="number" name="num_players" min="1" max="20" /> <br/>
-  <button type="submit">Create</button>
+<h1>Create Game</h1>
+<form action="create" method="post" class="form-vertical">
+  <div class="form-group">
+    <label for="name">Name:</label> 
+    <input type="text" class="form-control" name="name" />
+    <label for="pwd">Password:</label>
+    <input type="text" class="form-control" name="pwd" />
+    <label for="num_players">Number of players:</label>
+    <input type="number" class="form-control" name="num_players" min="1" max="20" /> 
+  </div>
+  <button class="btn btn-primary btn-block" type="submit">Create</button>
 </form>
 {% endblock %}
 
